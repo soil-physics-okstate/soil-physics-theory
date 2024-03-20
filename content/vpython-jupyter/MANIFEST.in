@@ -1,4 +1,0 @@
-include CHANGES.txt
-include LICENSE.txt
-include README.md
-include vpython/cyvector.pyx
