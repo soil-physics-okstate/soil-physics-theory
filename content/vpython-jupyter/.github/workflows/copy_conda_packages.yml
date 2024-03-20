@@ -1,0 +1,33 @@
+on:
+  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    # Run once a day at 22:40 UTC
+    - cron: '55 22 * * *'
+
+jobs:
+  copy_packages:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: 3.11
+
+    - name: Install dependencies
+      shell: bash -l {0}
+      run: |
+        conda install anaconda-client
+
+    - name: Perform copy
+      env:
+        BINSTAR_TOKEN: ${{ secrets.BINSTAR_TOKEN }}
+      shell: bash -l {0}
+      run: |
+        git clone https://github.com/glue-viz/conda-sync.git
+        mv conda-sync/sync.py .
+        python drive_copy.py
