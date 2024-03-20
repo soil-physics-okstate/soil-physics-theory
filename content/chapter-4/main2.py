@@ -25,9 +25,9 @@ def main():
         factor = float(input(myStr))
  
     z = initialize(airT0, thetaIni, solver)
-    simulationLenght = int(input("nr of simulation hours: "))    
+    simulationLength = int(input("nr of simulation hours: "))    
                     
-    endTime = simulationLenght * 3600.0         
+    endTime = simulationLength * 3600.0         
     timeStepMax = 3600.0                        
     dt = timeStepMax / 8.0                      
     time = 0.0                                  
@@ -36,16 +36,25 @@ def main():
     
     f, plot = plt.subplots(3, figsize=(8,8), dpi=80)
     plt.subplots_adjust(hspace = 0.3)
+    plot[0].set_xlabel("Temperature [C]",fontsize=14,labelpad=2)
+    plot[0].set_ylabel("Depth [m]",fontsize=14,labelpad=4) 
+    plot[0].set_xlim(meanT-ampT, meanT+ampT) 
     plot[1].set_xlabel("Time [h]",fontsize=14,labelpad=2)  
     plot[1].set_ylabel("Temperature [C]",fontsize=14,labelpad=4)
     plot[2].set_xlabel("Time [h]",fontsize=14,labelpad=2)
     plot[2].set_ylabel("Heat flux [W m$^{-2}$]",fontsize=14,labelpad=4)
-    plot[1].set_xlim(timeShift, simulationLenght+timeShift)
+    plot[1].set_xlim(timeShift, simulationLength+timeShift)
     plot[1].set_ylim(meanT-ampT, meanT+ampT)
-    plot[2].set_xlim(timeShift, simulationLenght+timeShift)
-
-    #Define output file
+    plot[2].set_xlim(timeShift, simulationLength+timeShift)
+  
+    #Create new output file in append mode
+    import os
+    try:
+      os.remove('output.csv')
+    except OSError:
+      pass
     outFile= open("output.csv","a")
+
     #Write header with depth
     outFile.write("time [hr], 0.0 [m], 0.1 [m], 0.3 [m]\n")    
 
@@ -70,17 +79,16 @@ def main():
             
             t = time/3600. + timeShift
             
-            plot[0].clear()
-            plot[0].set_xlabel("Temperature [C]",fontsize=14,labelpad=2)
-            plot[0].set_ylabel("Depth [m]",fontsize=14,labelpad=4) 
-            plot[0].set_xlim(meanT-ampT, meanT+ampT) 
             plot[0].plot(T[1:len(T)], -z[1:len(T)], 'k')
-            plot[0].plot(T[1:len(T)], -z[1:len(T)], 'ko')
+            # plot[0].plot(T[1:len(T)], -z[1:len(T)], 'ko')
+            plot[0].draw(plt.gcf().canvas.get_renderer())
             plot[1].plot(t, T[getLayerIndex(z, 0.0)], 'ko')    
             plot[1].plot(t, T[getLayerIndex(z, 0.1)], 'ks')     
-            plot[1].plot(t, T[getLayerIndex(z, 0.3)], 'k^')    
+            plot[1].plot(t, T[getLayerIndex(z, 0.3)], 'k^')
+            plot[1].draw(plt.gcf().canvas.get_renderer())    
             plot[2].plot(t, heatFlux, 'ko')
-            plt.pause(0.0001)
+            plot[2].draw(plt.gcf().canvas.get_renderer())
+            #plt.pause(0.0001)
             #increment time step when system is converging
             if (float(nrIterations/maxNrIterations) < 0.25): 
                     dt = min(dt*2, timeStepMax)
@@ -96,7 +104,7 @@ def main():
             print ("dt =", dt, "No convergence")
 
     outFile.close()
-    print("nr of iterations per hour:", totalIterationNr / simulationLenght)
+    print("nr of iterations per hour:", totalIterationNr / simulationLength)
     #plt.ioff()
     plt.show()
 main()

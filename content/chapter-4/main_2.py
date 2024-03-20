@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from PSP_heat import *  
 from PSP_grid import *
 import pdb
-import csv
+import numpy as np
 
 def main():  
     global z
