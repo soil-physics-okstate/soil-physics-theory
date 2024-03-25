@@ -20,8 +20,8 @@ def main():
       myStr = "sub-surface water content (m^3/m^3): " 
       thetaSubSurf = float(input(myStr))
       thetaIni = np.concatenate((np.array([thetaSurf]), np.ones(21)*thetaSubSurf))
-    print(thetaIni)
-    print(len(thetaIni))
+    # print(thetaIni)
+    # print(len(thetaIni))
 
     myStr = "mean temperature [C]: " 
     meanT = float(input(myStr))
