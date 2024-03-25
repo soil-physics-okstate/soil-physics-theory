@@ -1,16 +1,28 @@
 import matplotlib.pyplot as plt
-from PSP_heat import *  
+import numpy as np
+from PSP_heat_mod import *  
 from PSP_grid import *
 
 def main():  
     global z
     print (FIN_DIFF, 'Finite Difference')
     print (CELL_CENT_FIN_VOL, 'Cell-Centered Finite Volume')
-
     
     solver = int(input("Select solver: "))
-    myStr = "water content (m^3/m^3): " 
-    thetaIni = float(input(myStr))
+    uniform = int(input("Uniform water content (1) or variable water content with depth (2)?"))
+    if (uniform == 1):
+      myStr = "water content (m^3/m^3): " 
+      theta = float(input(myStr))
+      thetaIni = np.ones(22)*theta
+    else:
+      myStr = "surface water content (m^3/m^3): " 
+      thetaSurf = float(input(myStr))
+      myStr = "sub-surface water content (m^3/m^3): " 
+      thetaSubSurf = float(input(myStr))
+      thetaIni = np.concatenate((np.array([thetaSurf]), np.ones(21)*thetaSubSurf))
+    print(thetaIni)
+    print(len(thetaIni))
+
     myStr = "mean temperature [C]: " 
     meanT = float(input(myStr))
     myStr = "amplitude of change in temperature [C]: " 
