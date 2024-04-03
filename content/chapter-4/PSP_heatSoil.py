@@ -9,8 +9,8 @@ LOGARITHMIC = 1
 FIN_DIFF = 1
 CELL_CENT_FIN_VOL = 2
 
-bulkDensity = 800.
-clay = 0.02
+# bulkDensity = 1500. # kg/m^3
+# clay = 0.10 # g/g
 
 def kMean(meanType, k1, k2):
     if (meanType == GEOMETRIC): 

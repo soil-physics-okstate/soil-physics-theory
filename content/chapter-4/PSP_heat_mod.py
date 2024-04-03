@@ -52,7 +52,7 @@ def initialize(T_0, thetaIni, solver):
     return z
     
 
-def finiteDifference(airT, boundaryT, dt, factor):
+def finiteDifference(airT, boundaryT, dt, factor, bulkDensity, clay):
     g = 1.0 - factor
     energyBalance = 1.
     for i in range(1, n+2):
@@ -99,7 +99,7 @@ def finiteDifference(airT, boundaryT, dt, factor):
         return False, nrIterations, 0
 
         
-def cellCentFiniteVol(airT, boundaryT, dt):
+def cellCentFiniteVol(airT, boundaryT, dt, bulkDensity, clay):
     energyBalance = 1.
     for i in range(1, n+2):
         T[i] = oldT[i] 

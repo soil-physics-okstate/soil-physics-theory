@@ -3,7 +3,7 @@ import numpy as np
 from PSP_heat_mod import *  
 from PSP_grid import *
 
-def main():  
+def main(bulkDensity, clay):  
     global z
     print (FIN_DIFF, 'Finite Difference')
     print (CELL_CENT_FIN_VOL, 'Cell-Centered Finite Volume')
@@ -75,10 +75,10 @@ def main():
         airT = airT0 + ampT * np.sin((time+dt)*omega)
         if (solver == FIN_DIFF):
             success, nrIterations, heatFlux = (
-                finiteDifference(airT, meanT, dt, factor))            
+                finiteDifference(airT, meanT, dt, factor, bulkDensity, clay))            
         elif (solver == CELL_CENT_FIN_VOL):
             success, nrIterations, heatFlux = (
-                cellCentFiniteVol(airT, meanT, dt))
+                cellCentFiniteVol(airT, meanT, dt, bulkDensity, clay))
         totalIterationNr += nrIterations
         
         
@@ -119,4 +119,4 @@ def main():
     print("nr of iterations per hour:", totalIterationNr / simulationLength)
     #plt.ioff()
     plt.show()
-main()
+# main()
