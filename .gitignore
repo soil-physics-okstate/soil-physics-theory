@@ -114,3 +114,5 @@ dmypy.json
 # jupyterlite
 *.doit.db
 _output
+content/chapter-4/output.csv
+content/chapter-4/output.csv
