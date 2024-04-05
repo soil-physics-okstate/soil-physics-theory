@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import PSP_thermalCond as soil
 from PSP_readDataFile import *
 
-def main():
+def main(bulkDensity, clay):
     A, isFileOk = readDataFile("soilTemperature.txt", 0, ',', False)
     if (isFileOk == False): 
         print ("Incorrect format")
