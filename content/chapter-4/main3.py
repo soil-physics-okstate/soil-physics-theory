@@ -3,7 +3,7 @@ import numpy as np
 from PSP_heat_mod import *  
 from PSP_grid import *
 
-def main():  
+def main(bulkDensity, clay):  
     global z
     print (FIN_DIFF, 'Finite Difference')
     print (CELL_CENT_FIN_VOL, 'Cell-Centered Finite Volume')
