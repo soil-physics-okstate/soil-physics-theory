@@ -16,7 +16,7 @@ else:
     from tkMessageBox import showerror
     
 isDataLoaded = False
-waterTemperature = 20
+waterTemperature = 25
 liquidPermittivity = getLiquidPermittivity(waterTemperature)
 
 mainWindow = Tk()
@@ -86,6 +86,7 @@ def importData():
             data = x[0,:]
         else:
             data = x[:,0]
+  breakpoint()
         tt.reflecCoeff = tt.normalizeVector(data)
         print("number of values:", len(data))
         isDataLoaded = True
