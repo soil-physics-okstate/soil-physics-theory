@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from PSP_readDataFile import readDataFile
 from PSP_Marquardt import *
 
-def main():
+def main(file_str, model_int):
     # read experimental values
-    myOutput, isFileOk = readDataFile("loam.txt", 1, '\t', False)
+    myOutput, isFileOk = readDataFile(file_str, 1, '\t', False)
     if (not isFileOk): 
         print('Wrong file: error reading row nr.', myOutput)
         return(False)
@@ -26,7 +26,7 @@ def main():
 
     waterRetentionCurve = 0
     while (waterRetentionCurve < CAMPBELL) or (waterRetentionCurve > CAMPBELL_IPPISCH_VG):
-        waterRetentionCurve = float(input("Choose model type: "))
+        waterRetentionCurve = float(model_int)
         if (waterRetentionCurve < CAMPBELL) or (waterRetentionCurve > CAMPBELL_IPPISCH_VG):
             print('wrong choice.')
   
@@ -108,4 +108,4 @@ def main():
     #plt.savefig('waterRetention.eps')
     plt.show()
 
-main()    
+#main()    
