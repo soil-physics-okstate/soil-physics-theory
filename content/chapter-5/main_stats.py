@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from PSP_readDataFile import readDataFile
 from PSP_Marquardt import *
 
-def main(file_str, model_int):
+def main_stats(file_str, model_int):
+    bold = '\033[1m'
     # read experimental values
     myOutput, isFileOk = readDataFile(file_str, 1, '\t', False)
     if (not isFileOk): 
@@ -18,12 +19,7 @@ def main(file_str, model_int):
     waterContent = myOutput[:,1]
     
     # select water retention curve
-    print (CAMPBELL,' Campbell')
-    print (VAN_GENUCHTEN,' van Genuchten')
-    print (RESTRICTED_VG,' van Genuchten with m = 1-1/n restriction')
-    print (IPPISCH_VG,' Ippisch-van Genuchten')
-    print (CAMPBELL_IPPISCH_VG,' Campbell-Ippisch-van Genuchten')
-
+    
     waterRetentionCurve = 0
     while (waterRetentionCurve < CAMPBELL) or (waterRetentionCurve > CAMPBELL_IPPISCH_VG):
         waterRetentionCurve = float(model_int)
@@ -44,14 +40,17 @@ def main(file_str, model_int):
         b0 = np.array([thetaS, air_entry, Campbell_b], float)
         bmin = np.array([thetaS, 0.1, 0.1], float)
         bmax = np.array([thetaS*1.1, 20., 10.], float)
+        print(bold + 'CAMPBELL' + bold)
     elif (waterRetentionCurve == VAN_GENUCHTEN):
         b0 = np.array([thetaS, thetaR, VG_alpha, VG_n, VG_m], float)
         bmin = np.array([thetaS, 0.0, 0.01, 0.01, 0.01], float)
         bmax = np.array([1.0, thetaR, 10., 10., 1.], float)
+        print(bold + 'VAN_GENUCHTEN' + bold)
     elif (waterRetentionCurve == RESTRICTED_VG):
         b0 = np.array([thetaS, thetaR, VG_alpha, VG_n], float)
         bmin = np.array([thetaS, 0.0, 0.01, 1.], float)
         bmax = np.array([1, thetaR, 10., 10.], float)
+        print(bold + 'RESTRICTED_VG' + bold)
     elif (waterRetentionCurve == IPPISCH_VG):
         b0 = np.array([thetaS, thetaR, air_entry, VG_alpha, VG_n], float)
         bmin = np.array([thetaS, 0.0, 0.1, 0.01, 1.], float)
@@ -94,18 +93,6 @@ def main(file_str, model_int):
 
     myWP = np.logspace(-5, 8, 500)
     myWC = estimate(waterRetentionCurve, b, myWP)
-    
-    plt.figure(figsize=(10,8))
-    plt.plot(myWP, myWC,'k-')
-    plt.plot(waterPotential, waterContent,'ko')
 
-    plt.xscale('log')
-    plt.xlabel('Water Potential [J kg$^{-1}$]',fontsize=20,labelpad=6)
-    plt.xticks(size='16')
-    plt.ylabel('Water Content [m$^{3}$ m$^{-3}$]',fontsize=20,labelpad=6)
-    plt.tick_params(axis='both', which='major', labelsize=20,pad=8)
-    plt.tick_params(axis='both', which='minor', labelsize=20,pad=8)
-    #plt.savefig('waterRetention.eps')
-    plt.show()
 
 #main()    
