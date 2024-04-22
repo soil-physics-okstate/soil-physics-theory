@@ -46,21 +46,21 @@ def main():
         isFreeDrainage = False
     
     # hours of simulation 
-    simulationLenght = int(input("\nNr of simulation hours:"))    
+    simulationLength = int(input("\nNr of simulation hours:"))    
                     
-    endTime = simulationLenght * 3600   
+    endTime = simulationLength * 3600   
     maxTimeStep = 3600                  
     dt = maxTimeStep / 10               
     time = 0                            
     sumInfiltration = 0
     totalIterationNr = 0
-    infRate = np.zeros(inf.n+2) #pre-allocate infiltration rate vector
-    timeVec = np.zeros(inf.n+2) #pre-allocate time vector
-    
+    infRate = [] #np.zeros(simulationLength*1000) #pre-allocate infiltration rate vector
+    timeVec = [] #np.zeros(simulationLength*1000) #pre-allocate time vector
+   
     """
     plt.ion()
     f, myPlot = plt.subplots(2, figsize=(10, 8), dpi=80)
-    myPlot[1].set_xlim(0, simulationLenght * 3600)
+    myPlot[1].set_xlim(0, simulationLength * 3600)
     myPlot[1].set_ylim(0, 0.1)
     myPlot[1].set_xlabel("Time [s]",fontsize=16,labelpad=8)
     myPlot[1].set_ylabel("Infiltration Rate [kg m$^{-2}$ s$^{-1}$]",fontsize=16,labelpad=8)
@@ -79,12 +79,14 @@ def main():
             success, nrIterations, flux = inf.NewtonRapsonMFP(funcType,
                         soil, dt, ubPotential, isFreeDrainage)
         totalIterationNr += nrIterations
+        infRate.append(flux) # save infiltration rate for plotting
+        timeVec.append(time) # save time for plotting
+        
         
         if success:
             for i in range(inf.n+2):
                 inf.oldTheta[i] = inf.theta[i]
-                infRate[i] = flux 
-                timeVec[i] = time
+
             sumInfiltration += flux * dt 
             time += dt
                         
@@ -115,10 +117,9 @@ def main():
                 else:
                     inf.psi[i] = inf.waterPotential(funcType, soil[inf.hor[i]], inf.theta[i])
            
-    print("nr of iterations per hour:", totalIterationNr / simulationLenght)
-    breakpoint()
+    print("nr of iterations per hour:", totalIterationNr / simulationLength)
     f, myPlot = plt.subplots(2, figsize=(10, 8), dpi=80)
-    myPlot[1].set_xlim(0, simulationLenght * 3600)
+    myPlot[1].set_xlim(0, simulationLength * 3600)
     myPlot[1].set_ylim(0, 0.1)
     myPlot[1].set_xlabel("Time [s]",fontsize=16,labelpad=8)
     myPlot[1].set_ylabel("Infiltration Rate [kg m$^{-2}$ s$^{-1}$]",fontsize=16,labelpad=8)
