@@ -28,7 +28,7 @@ p2 = CPoint()
 p3 = CPoint()
 
 timeVector = []             
-reflecCoeff = [] 
+#reflecCoeff = [] 
 dy =[]
 dy2 =[]
 
@@ -161,7 +161,7 @@ def lineIntersection(line1, line2):
     
     return(myPoint)
 
-def computeTravelTime(probeHandle, permittivity, Vp):
+def computeTravelTime(probeHandle, permittivity, Vp, reflecCoeff):
     global dy, dy2, line1, line2, lastFlatLine
     global indexFlatLine, indexRegr1, indexRegr2, indexRegr3
     global p0, p1, p2, p3

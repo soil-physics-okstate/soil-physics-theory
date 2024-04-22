@@ -2,80 +2,44 @@ from __future__ import print_function, division
 
 from PSP_readDataFile import readDataFile
 from PSP_TTwaterContent import *
-from PSP_TTplot import *
-from PSP_travelTime import computeTravelTime
+from PSP_travelTime import *
+import matplotlib.pyplot as plt
 
-import sys
-if sys.version_info >= (3,0):
-    from tkinter import *                           #3.x
-    from tkinter.filedialog import askopenfilename      
-    from tkinter.messagebox import showerror
-else:
-    from Tkinter import *                           #2.7
-    from tkFileDialog import askopenfilename           
-    from tkMessageBox import showerror
-    
 isDataLoaded = False
-waterTemperature = 25
+
+#set parameters
+waterTemperature = int(input("Soil temperature (C):")) #20 C 
+bulkDensity = int(input("Bulk density (kg/m^3):")) #1350 kg/m^3
+solidPermittivity = int(input("Permittivity of soil solids (-): ")) #default is 4
+
 liquidPermittivity = getLiquidPermittivity(waterTemperature)
-
-mainWindow = Tk()
-mainWindow.title("TDRPy")
-mainWindow.geometry("%dx%d" % (520, 700))
-
-headerNrStr = StringVar()
-vpStr = StringVar()             
-probeLenghtStr = StringVar()
-windowBeginStr = StringVar()
-windowWidthStr = StringVar()
-probleHandleStr = StringVar()
-handlePermittivityStr = StringVar()
-point0XStr = StringVar()
-point1XStr = StringVar()
-point2XStr = StringVar()
-v1Str = StringVar()
-vfStr = StringVar()
-ratioStr = StringVar()
-estBulkDensityStr = StringVar()
-ttStr = StringVar()
-bulkPermittivityStr = StringVar()
-waterTemperatureStr = StringVar()
-bulkDensityStr = StringVar()
-aStr = StringVar()
-bStr = StringVar()
-cStr = StringVar()
-solidPermittivityStr = StringVar()
-liquidPermittivityStr = StringVar()
-geometricParStr = StringVar()
-wcToppStr = StringVar()
-wcMalickiStr = StringVar()
-wcMixModelStr = StringVar()
-
-
-if sys.version_info >= (3, 0):
-    waterTempLabel = Label(mainWindow, text="Water temp. [\u00B0C]")
-else:
-    waterTempLabel = Label(mainWindow, text="Water temp. [C]")
-waterTempLabel.place(x=80, y=275)
-waterTempWidget = Entry(mainWindow, width = 6, textvariable = waterTemperatureStr)
-waterTempWidget.place(x=200, y=275)
-
-def getEpsilonLabel():
-    if sys.version_info >= (3, 0):
-        return Label(mainWindow, font = "helvetica 12", text="\u03F5")
-    else:
-        return Label(mainWindow, font = "helvetica 10", text="e")
+headerNr = 8 # number of header rows
+vp = 0.99 	#fraction of speed of light [-]
+probeLength = 0.15 # m
+windowBegin = 0.
+windowWidth = 5.
+probeHandle = 0.12 # m
+handlePermittivity = 1.7
+point0X = 0
+point1X = 0
+point2X = 0
+v1 = 0
+vf = 0
+ratio = 0
+estBulkDensity = 0
+tt = 0
+bulkPermittivity = 0
+geometricPar = 0.5
+a = 0.0
+b = 0.14
+c = 1.2
+wcTopp = 0
+wcMalicki = 0
+wcMixModel = 0
     
-def checkTWater(event):
-    global waterTemperature, liquidPermittivity
-    if (event.widget == waterTempWidget):
-        waterTemperature = float(waterTemperatureStr.get())
-        liquidPermittivity = getLiquidPermittivity(waterTemperature)
-        liquidPermittivityStr.set(format(liquidPermittivity,".3f"))
-
 def importData(): 
-    nrHeaderValues = int(headerNrStr.get())
-    fileName = askopenfilename()
+    nrHeaderValues = int(headerNr)
+    fileName = input("File name:")
     if (fileName != ""):
         global isDataLoaded, waveFormNrpoints
         x, isFileOk = readDataFile(fileName,nrHeaderValues,'\t', False)
@@ -86,298 +50,92 @@ def importData():
             data = x[0,:]
         else:
             data = x[:,0]
-  breakpoint()
-        tt.reflecCoeff = tt.normalizeVector(data)
-        print("number of values:", len(data))
+
+        reflecCoeff = normalizeVector(data)
+        # print("number of values:", len(data))
         isDataLoaded = True
+    return reflecCoeff
+
+def drawRegressionLines():
+    nrPoints = len(timeVector)
+    step = int(16. * (nrPoints / 256.0))
+    
+    t = np.zeros(nrPoints, float)
+    line1vec = np.zeros(nrPoints, float)
+    line2vec = np.zeros(nrPoints, float)
+    flatLinevec = np.zeros(nrPoints, float)
+    for i in range(nrPoints): 
+        t[i] = timeVector[i] * 1E09
+        line1vec[i] = line1.a * timeVector[i] + line1.b
+        line2vec[i] = line2.a * timeVector[i] + line2.b
+        flatLinevec[i] = lastFlatLine.b
+    
+    index = int(p2.x / deltaTime)   
+    first = max(0, index - step)
+    last = min(nrPoints, index + step)
+    plt.plot(t[first:last], line1vec[first:last], 'k')
+    plt.plot(t[first:last], line2vec[first:last], 'k')
+    
+    first = nrPoints - step*4
+    last = nrPoints
+    plt.plot(t[first:last], flatLinevec[first:last], 'k')
+    
+    plt.plot(p0.x* 1E09, p0.y, 'rs')
+    plt.plot(p1.x* 1E09, p1.y, 'rs')
+    plt.plot(p2.x* 1E09, p2.y, 'rs')
+    plt.plot(p3.x* 1E09, p3.y, 'rs')	
+
+reflecCoeff = importData()
         
-def ComputeTT():
-    if not isDataLoaded:
-        showerror("Warning", "Data not loaded")
-        return
-    #read parameters
-    vp = float(vpStr.get())                     
-	#fraction of speed of light [-]
-    probleLenght = float(probeLenghtStr.get())
-    windowBegin = float(windowBeginStr.get())
-    windowWidth = float(windowWidthStr.get())
-    probeHandle = float(probleHandleStr.get())
-    handlePermittivity = float(handlePermittivityStr.get())
-    bulkDensity = float(bulkDensityStr.get())
-    solidPermittivity = float(solidPermittivityStr.get())
-    geomParameter = float(geometricParStr.get())
-    a = float(aStr.get())
-    b = float(bStr.get())
-    c = float(cStr.get())
-    
-    #compute
-    nrPoints = len(tt.reflecCoeff)
-    tt.WF_parameters(vp, probeHandle, windowBegin, windowWidth, nrPoints)
+if not isDataLoaded:
+  showerror("Warning", "Data not loaded")
 
-    if not computeTravelTime(probeHandle, handlePermittivity, vp):
-        showerror("Warning", "Wrong data, header or parameter")
-        return
-    
-    travelTime = tt.p2.x - tt.p1.x
-    bulkPermittivity = getBulkPermittivity(probleLenght, travelTime, vp)
-    wcTopp = getWaterContentTopp(bulkPermittivity)
-    wcMalicki = getWaterContentMalicki(bulkPermittivity, bulkDensity)
-    wcMixModel = getWaterContentMixModel(bulkPermittivity, bulkDensity, 
-                        solidPermittivity, liquidPermittivity, geomParameter)
-    y1 = tt.p1.y
-    y2 = tt.p2.y
-    y3 = tt.p3.y
-    v1 = abs(y2-y1)
-    vf = abs(y3+1)
-    v1vf_ratio = v1/vf
-    bd = int(getDensityCurioni(bulkPermittivity, v1, vf, a, b, c))
-    
-    #print results
-    x0 = tt.p0.x * (1E09)
-    point0XStr.set(format(x0, '.3f'))
-    x1 = tt.p1.x * (1E09)
-    point1XStr.set(format(x1, '.3f'))
-    x2 = tt.p2.x * (1E09)
-    point2XStr.set(format(x2, '.3f'))
-    ttStr.set(format(travelTime * (1E09), '.3f'))
-    bulkPermittivityStr.set(format(bulkPermittivity, '.2f'))
-    
-    v1Str.set(format(v1, '.3f'))
-    vfStr.set(format(vf, '.3f'))
-    ratioStr.set(format(v1vf_ratio, '.3f'))
-    estBulkDensityStr.set(bd)
-    
-    wcToppStr.set(format(wcTopp,".3f"))
-    wcMalickiStr.set(format(wcMalicki,".3f"))
-    wcMixModelStr.set(format(wcMixModel,".3f"))
-    
-    #graph
-    cleanDisplay()
-    drawWaveForm()
-    drawRegressionLines()
-    showDisplay()
-      
-def main():        
-    vpStr.set(0.99)
-    probeLenghtStr.set(0.15)
-    windowBeginStr.set(0.)
-    windowWidthStr.set(5.)
-    probleHandleStr.set(0.120)
-    handlePermittivityStr.set(1.7)
-    point0XStr.set(0)
-    point1XStr.set(0)
-    point2XStr.set(0)
-    
-    v1Str.set(0)
-    vfStr.set(0)
-    ratioStr.set(0)
-    estBulkDensityStr.set(0)
-    ttStr.set(0)
-    bulkPermittivityStr.set(0)
-    bulkDensityStr.set(1350)
-    waterTemperatureStr.set(waterTemperature)
-    solidPermittivityStr.set(4.0)
-    liquidPermittivityStr.set(format(liquidPermittivity, ".3f"))
-    geometricParStr.set(0.5)
-    aStr.set(0.0)
-    bStr.set(0.14)
-    cStr.set(1.2)
-    wcToppStr.set(0)
-    wcMalickiStr.set(0)
-    wcMixModelStr.set(0)
-    
-    buttonImport = Button(mainWindow, text="Import data", command=importData)
-    buttonImport.place(x=5, y=15)
-    
-    headerLabel = Label(mainWindow, text="Header values nr.")
-    headerLabel.place(x=100, y=20)
-    headerWidget = Entry(mainWindow, width = 3, textvariable = headerNrStr)
-    headerWidget.place(x=200, y=20)
-    headerWidget.insert(0, "8")
-    headerWidget.pack
+#compute
+nrPoints = len(reflecCoeff)
+WF_parameters(vp, probeHandle, windowBegin, windowWidth, nrPoints) # calculates global variables deltaTime, deltaSpace, timeVector
 
-    computeTTButton = Button(mainWindow, text="Compute", command=ComputeTT)
-    computeTTButton.place(x=250, y=15)
-            
-    vpLabel = Label(mainWindow, text="Vp [-]")
-    vpLabel.place(x=80, y=80)
-    vpWidget = Entry(mainWindow, width = 6, textvariable = vpStr)
-    vpWidget.place(x=200, y=80)
-    
-    probeLenghtLabel = Label(mainWindow, text="Probe length [m]")
-    probeLenghtLabel.place(x=80, y=105)
-    probeLenghtWidget = Entry(mainWindow, width = 6, textvariable = probeLenghtStr)
-    probeLenghtWidget.place(x=200, y=105)
-    
-    winBeginLabel = Label(mainWindow, text="Window begin [m]")
-    winBeginLabel.place(x=80, y=130)
-    winBeginWidget = Entry(mainWindow, width = 6, textvariable = windowBeginStr)
-    winBeginWidget.place(x=200, y=130)
-    
-    winwidthLabel = Label(mainWindow, text="Window width [m]")
-    winwidthLabel.place(x=80, y=155)
-    winwidthWidget = Entry(mainWindow, width = 6, textvariable = windowWidthStr)
-    winwidthWidget.place(x=200, y=155)
-    
-    probeHandleLabel = Label(mainWindow, text="Probe handle [m]")
-    probeHandleLabel.place(x=80, y=180)
-    probeHandleWidget = Entry(mainWindow, width = 6, textvariable = probleHandleStr)
-    probeHandleWidget.place(x=200, y=180)
-    
-    epsilonLabel = getEpsilonLabel()
-    epsilonLabel.place(x=80, y=200)
-    epsilonLabel = Label(mainWindow, text="handle")
-    epsilonLabel.place(x=90, y=206)
-    permittivityWidget = Entry(mainWindow, width = 6, textvariable = handlePermittivityStr)
-    permittivityWidget.place(x=200, y=200)
-    
-    # Soil parameters
-    SoilParameterLabel = Label(mainWindow, text="Soil parameters" , font = "helvetica 10 bold", fg="red")
-    SoilParameterLabel.place(x=20, y=225)
-    
-    bulkDensityLabel = Label(mainWindow, text="Bulk density [kg m-3]")
-    bulkDensityLabel.place(x=80, y=250)
-    bulkDensityWidget = Entry(mainWindow, width = 6, textvariable = bulkDensityStr)
-    bulkDensityWidget.place(x=200, y=250)
-    
-    epsilon2Label = getEpsilonLabel()
-    epsilon2Label.place(x=80, y=295)
-    epsilon2Label = Label(mainWindow, text="liquid")
-    epsilon2Label.place(x=90, y=300)
-    liquidPermittivityLabel = Label(mainWindow, textvariable = liquidPermittivityStr)
-    liquidPermittivityLabel.place(x=200, y=300)
-    
-    epsilon3Label = getEpsilonLabel()
-    epsilon3Label.place(x=80, y=320)
-    epsilon3Label = Label(mainWindow, text="solid")
-    epsilon3Label.place(x=90, y=325)
-    solidPermittivityWidget = Entry(mainWindow, width = 6, textvariable = solidPermittivityStr)
-    solidPermittivityWidget.place(x=200, y=325)
-    
-    geometricParLabel = Label(mainWindow, text="alpha (geom. param.)")
-    geometricParLabel.place(x=80, y=350)
-    geometricParWidget = Entry(mainWindow, width = 6, textvariable = geometricParStr)
-    geometricParWidget.place(x=200, y=350)
-    
-    # Bulk density parameters
-    posY_col2 = 225
-    posX_col2 = 320
-    bdParamLabel = Label(mainWindow, text="Density est. parameters" , font = "helvetica 10 bold", fg="red")
-    bdParamLabel.place(x=300, y=posY_col2)
-    posY_col2 += 25
-    
-    aLabel = Label(mainWindow, text="a [-]")
-    aLabel.place(x=posX_col2, y=posY_col2)
-    aWidget = Entry(mainWindow, width = 6, textvariable = aStr)
-    aWidget.place(x=posX_col2 + 120, y=posY_col2)
-    posY_col2 += 25
-    
-    bLabel = Label(mainWindow, text="b [-]")
-    bLabel.place(x=posX_col2, y=posY_col2)
-    bWidget = Entry(mainWindow, width = 6, textvariable = bStr)
-    bWidget.place(x=posX_col2 + 120, y=posY_col2)
-    posY_col2 += 25
-    
-    cLabel = Label(mainWindow, text="c [-]")
-    cLabel.place(x=posX_col2, y=posY_col2)
-    cWidget = Entry(mainWindow, width = 6, textvariable = cStr)
-    cWidget.place(x=posX_col2 + 120, y=posY_col2)
-    posY_col2 += 25
-    
-    posY_col1 = 375
-    posY_col2 = 375
-    posX_col2 = 320
-    
-    # travel time output 
-    ttResultsLabel = Label(mainWindow, text="Travel Time results" , font = "helvetica 10 bold", fg="blue")
-    ttResultsLabel.place(x=20, y=posY_col1)
-    posY_col1 += 25
-    
-    point0Label = Label(mainWindow, text="point 0 x [ns]")
-    point0Label.place(x=80, y=posY_col1)
-    point0Widget = Label(mainWindow, width = 6, textvariable = point0XStr)
-    point0Widget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    point1Label = Label(mainWindow, text="point 1 x [ns]")
-    point1Label.place(x=80, y=posY_col1)
-    point1Widget = Label(mainWindow, width = 6, textvariable = point1XStr)
-    point1Widget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    point2Label = Label(mainWindow, text="point 2 x [ns]")
-    point2Label.place(x=80, y=posY_col1)
-    point2Widget = Label(mainWindow, width = 6, textvariable = point2XStr)
-    point2Widget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    ttLabel = Label(mainWindow, text="Travel Time [ns]")
-    ttLabel.place(x=80, y=posY_col1)
-    ttWidget = Label(mainWindow, width = 6, textvariable = ttStr)
-    ttWidget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    bulkPermittivityLabel = Label(mainWindow, text="Bulk permittivity")
-    bulkPermittivityLabel.place(x=80, y=posY_col1)
-    bulkPermittivityWidget = Label(mainWindow, width = 6, textvariable = bulkPermittivityStr)
-    bulkPermittivityWidget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    # Water content output
-    wcLabel = Label(mainWindow, text="Water Content" , font = "helvetica 10 bold", fg="blue")
-    wcLabel.place(x=20, y=posY_col1)
-    posY_col1 += 25
-    
-    ToppLabel = Label(mainWindow, text="Topp")
-    ToppLabel.place(x=80, y=posY_col1)
-    ToppWidget = Label(mainWindow, width = 6, textvariable = wcToppStr)
-    ToppWidget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    MalickiLabel = Label(mainWindow, text="Malicki")
-    MalickiLabel.place(x=80, y=posY_col1)
-    MalickiWidget = Label(mainWindow, width = 6, textvariable = wcMalickiStr)
-    MalickiWidget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    dielecMixModelLabel = Label(mainWindow, text="Diel. mix model")
-    dielecMixModelLabel.place(x=80, y=posY_col1)
-    dielecMixModelWidget = Label(mainWindow, width = 6, textvariable = wcMixModelStr)
-    dielecMixModelWidget.place(x=200, y=posY_col1)
-    posY_col1 += 25
-    
-    # Density output
-    reflectionLabel = Label(mainWindow, text="Density" , font = "helvetica 10 bold", fg="blue")
-    reflectionLabel.place(x=300, y=posY_col2)
-    posY_col2 += 25
-    
-    v1Label = Label(mainWindow, text="V1 [-]")
-    v1Label.place(x=posX_col2, y=posY_col2)
-    v1Widget = Label(mainWindow, width = 6, textvariable = v1Str)
-    v1Widget.place(x=posX_col2 + 140, y=posY_col2)
-    posY_col2 += 25
-    
-    vfLabel = Label(mainWindow, text="Vf [-]")
-    vfLabel.place(x=posX_col2, y=posY_col2)
-    vfWidget = Label(mainWindow, width = 6, textvariable = vfStr)
-    vfWidget.place(x=posX_col2 + 140, y=posY_col2)
-    posY_col2 += 25
-    
-    ratioLabel = Label(mainWindow, text="V1 / Vf [-]")
-    ratioLabel.place(x=posX_col2, y=posY_col2)
-    ratioWidget = Label(mainWindow, width = 6, textvariable = ratioStr)
-    ratioWidget.place(x=posX_col2 + 140, y=posY_col2)
-    posY_col2 += 25
-    
-    estBulkDensityLabel = Label(mainWindow, text="Density [m3 kg]")
-    estBulkDensityLabel.place(x=posX_col2, y=posY_col2)
-    estBulkDensityWidget = Label(mainWindow, width = 6, textvariable = estBulkDensityStr)
-    estBulkDensityWidget.place(x=posX_col2 + 140, y=posY_col2)
-    posY_col2 += 25
+if not computeTravelTime(probeHandle, handlePermittivity, vp, reflecCoeff): #attempts to compute travel time and returns warning if error encountered
+  showerror("Warning", "Wrong data, header or parameter")
 
-    mainWindow.bind("<Leave>", checkTWater)
-    mainWindow.protocol("WM_DELETE_WINDOW", mainWindow.destroy)
-        
-    mainWindow.mainloop()
-main()
-    
+travelTime = p2.x - p1.x 
+bulkPermittivity = getBulkPermittivity(probeLength, travelTime, vp)
+wcTopp = getWaterContentTopp(bulkPermittivity)
+wcMalicki = getWaterContentMalicki(bulkPermittivity, bulkDensity)
+wcMixModel = getWaterContentMixModel(bulkPermittivity, bulkDensity, 
+                    solidPermittivity, liquidPermittivity, geometricPar)
+
+print('Water content from mixing model')
+print(wcMixModel)
+
+y1 = p1.y
+y2 = p2.y
+y3 = p3.y
+v1 = abs(y2-y1)
+vf = abs(y3+1)
+v1vf_ratio = v1/vf
+bd = int(getDensityCurioni(bulkPermittivity, v1, vf, a, b, c))
+
+#graph
+plt.close()
+plt.figure(figsize=(10,8))
+
+lastIndex = len(reflecCoeff)-2
+t = np.zeros(lastIndex, float)
+for i in range(lastIndex): 
+  t[i] = timeVector[i] * 1E09
+y = reflecCoeff[0:lastIndex]
+dy = dy[0:lastIndex] 
+dy2 = dy2[0:lastIndex]   
+plt.plot(t, y, 'k.')
+#plt.plot(t, dy, 'k--')
+#plt.plot(t, dy2, 'r--')
+
+drawRegressionLines()
+
+plt.title("")
+plt.xlabel("Time [ns]",fontsize=20,labelpad=8)
+plt.ylabel("Reflection coefficient [-]",fontsize=20,labelpad=8)
+plt.tick_params(axis='both', which='major', labelsize=20,pad=8)
+plt.tick_params(axis='both', which='minor', labelsize=20,pad=8)
+plt.ylim(bottom=-1, top=1)
+plt.show()
