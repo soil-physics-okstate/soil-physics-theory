@@ -16,7 +16,7 @@ def hydraulicConductivity(silt,clay,bulkDensity):
         return psi_e, b
     
     def computeK(bulkDensity, psi_e, b):
-        porosity = 1-bulkDensity/2.65; # porosity
+        porosity = 1-bulkDensity/2650; # porosity
         theta_s = porosity # saturated water content
         K_s = 0.07*(theta_s*(1-(-psi_e/33)**(1/b)))**4 #Eq. 6.34, cm/s
         K = np.piecewise(-psi, [-psi < psi_e, -psi >= psi_e], [lambda x: K_s*(psi_e/x)**(2+3/b), K_s]) # hydraulic conductivity (cm/s)
