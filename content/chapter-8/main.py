@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 import matplotlib.pyplot as plt
 import PSP_infiltration1D as inf
+import numpy as np
     
 def main():  
     isSuccess, soil = inf.readSoil("soilUniform.txt")
@@ -45,23 +46,27 @@ def main():
         isFreeDrainage = False
     
     # hours of simulation 
-    simulationLenght = int(input("\nNr of simulation hours:"))    
+    simulationLength = int(input("\nNr of simulation hours:"))    
                     
-    endTime = simulationLenght * 3600   
+    endTime = simulationLength * 3600   
     maxTimeStep = 3600                  
     dt = maxTimeStep / 10               
     time = 0                            
     sumInfiltration = 0
     totalIterationNr = 0
-         
+    infRate = [] #np.zeros(simulationLength*1000) #pre-allocate infiltration rate vector
+    timeVec = [] #np.zeros(simulationLength*1000) #pre-allocate time vector
+   
+    """
     plt.ion()
     f, myPlot = plt.subplots(2, figsize=(10, 8), dpi=80)
-    myPlot[1].set_xlim(0, simulationLenght * 3600)
+    myPlot[1].set_xlim(0, simulationLength * 3600)
     myPlot[1].set_ylim(0, 0.1)
     myPlot[1].set_xlabel("Time [s]",fontsize=16,labelpad=8)
     myPlot[1].set_ylabel("Infiltration Rate [kg m$^{-2}$ s$^{-1}$]",fontsize=16,labelpad=8)
     plt.tick_params(axis='both', which='major', labelsize=12,pad=6)
-
+    """
+    
     while (time < endTime):
         dt = min(dt, endTime - time)
         if (solver == inf.CELL_CENT_FIN_VOL):
@@ -74,16 +79,21 @@ def main():
             success, nrIterations, flux = inf.NewtonRapsonMFP(funcType,
                         soil, dt, ubPotential, isFreeDrainage)
         totalIterationNr += nrIterations
+        infRate.append(flux) # save infiltration rate for plotting
+        timeVec.append(time) # save time for plotting
+        
         
         if success:
             for i in range(inf.n+2):
                 inf.oldTheta[i] = inf.theta[i]
+
             sumInfiltration += flux * dt 
             time += dt
                         
-            print("time =", int(time), "\tdt =", dt, 
-                  "\tIter. =", int(nrIterations), 
-                  "\tInf:", format(sumInfiltration, '.3f'))
+            #print("time =", int(time), "\tdt =", dt, 
+            #      "\tIter. =", int(nrIterations), 
+            #      "\tInf:", format(sumInfiltration, '.3f')) # enable printing by un-commenting this line
+            """
             myPlot[0].clear()
             myPlot[0].set_xlim(0, 0.5)
             myPlot[0].set_xlabel("Water content [m$^3$ m$^{-3}$]",fontsize=16,labelpad=8)
@@ -92,6 +102,7 @@ def main():
             myPlot[0].plot(inf.theta, -inf.z, 'ko')
             myPlot[1].plot(time, flux, 'ko')
             plt.pause(0.0001)
+            """
             
             if (float(nrIterations/inf.maxNrIterations) < 0.1): 
                     dt = min(dt*2, maxTimeStep)
@@ -106,7 +117,21 @@ def main():
                 else:
                     inf.psi[i] = inf.waterPotential(funcType, soil[inf.hor[i]], inf.theta[i])
            
-    print("nr of iterations per hour:", totalIterationNr / simulationLenght)
-    plt.ioff()
+    print("nr of iterations per hour:", totalIterationNr / simulationLength)
+    f, myPlot = plt.subplots(2, figsize=(10, 8), dpi=80)
+    myPlot[1].set_xlim(0, simulationLength * 3600)
+    myPlot[1].set_ylim(0, 0.1)
+    myPlot[1].set_xlabel("Time [s]",fontsize=16,labelpad=8)
+    myPlot[1].set_ylabel("Infiltration Rate [kg m$^{-2}$ s$^{-1}$]",fontsize=16,labelpad=8)
+    plt.tick_params(axis='both', which='major', labelsize=12,pad=6)
+    myPlot[0].clear()
+    myPlot[0].set_xlim(0, 0.5)
+    myPlot[0].set_xlabel("Water content [m$^3$ m$^{-3}$]",fontsize=16,labelpad=8)
+    myPlot[0].set_ylabel("Depth [m]",fontsize=16,labelpad=8)
+    myPlot[0].plot(inf.theta, -inf.z, 'k-')
+    myPlot[0].plot(inf.theta, -inf.z, 'ko')
+    myPlot[0].draw(plt.gcf().canvas.get_renderer())
+    myPlot[1].plot(timeVec, infRate, 'ko')
+    myPlot[1].draw(plt.gcf().canvas.get_renderer())
     plt.show()
 main()
