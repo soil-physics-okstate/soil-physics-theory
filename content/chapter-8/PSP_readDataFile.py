@@ -4,7 +4,6 @@ import csv
 import numpy as np
                 
 def scanDataFile(file, delimiter):
-    breakpoint()
     reader = csv.reader(open(file, "rt"), delimiter=delimiter)
     nrRows = 0
     for row in reader:
@@ -15,6 +14,7 @@ def scanDataFile(file, delimiter):
                 #wrong file: nr of fields not coherent
                 return (nrRows, nrCols, False)
         nrRows += 1
+        # for troubleshooting print(', '.join(row))
     return (nrRows, nrCols, True)
         
 # multi-columns or single row data (only numeric)                
