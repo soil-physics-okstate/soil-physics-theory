@@ -6,7 +6,8 @@ import PSP_infiltration1D as inf
 import numpy as np
     
 def main():  
-    isSuccess, soil = inf.readSoil("soilUniform.txt")
+    fileName = input("File name: ")
+    isSuccess, soil = inf.readSoil(fileName) #prompt user for soil file
     if not isSuccess: 
         print("warning: wrong soil file.")
         return

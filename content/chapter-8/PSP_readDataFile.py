@@ -4,6 +4,7 @@ import csv
 import numpy as np
                 
 def scanDataFile(file, delimiter):
+    breakpoint()
     reader = csv.reader(open(file, "rt"), delimiter=delimiter)
     nrRows = 0
     for row in reader:
