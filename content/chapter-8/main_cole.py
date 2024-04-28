@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import PSP_infiltration1D as inf
 import numpy as np
     
-def main(funcType,solver,Se,boundary,simulationLength):  
-    isSuccess, soil = inf.readSoil("soilUniform.txt")
+def main(funcType,solver,Se,boundary,simulationLength,fileName):  
+    isSuccess, soil = inf.readSoil(fileName)
     if not isSuccess: 
         print("warning: wrong soil file.")
         return

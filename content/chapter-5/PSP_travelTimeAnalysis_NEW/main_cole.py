@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 def importData(): 
     headerNr = 8 # number of header rows
     nrHeaderValues = int(headerNr)
-    fileName = input("File name:")
+    #fileName = input("File name:")
     if (fileName != ""):
         global isDataLoaded, waveFormNrpoints
         x, isFileOk = readDataFile(fileName,nrHeaderValues,'\t', False)
