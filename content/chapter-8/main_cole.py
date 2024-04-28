@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import PSP_infiltration1D as inf
 import numpy as np
     
-def main(funcType,solver,Se,boundary,simulationLength,fileName):  
-    isSuccess, soil = inf.readSoil(fileName)
+def main(fileName,funcType,solver,Se,boundary,simulationLength):  
+    #fileName = input("File name: ")
+    isSuccess, soil = inf.readSoil(fileName) #prompt user for soil file
     if not isSuccess: 
         print("warning: wrong soil file.")
         return
@@ -26,9 +27,10 @@ def main(funcType,solver,Se,boundary,simulationLength,fileName):
         solver = inf.CELL_CENT_FIN_VOL
         
     myStr = "Initial degree of saturation ]0-1]:" 
-    Se = inf.NODATA
-    print()
-    #while ((Se <= 0.0) or (Se > 1.0)):
+    #Se = inf.NODATA
+    #print()
+    while ((Se <= 0.0) or (Se > 1.0)):
+        print('sat = ',Se )
         #Se = float(input(myStr))
 
     inf.initializeWater(funcType, soil, Se, solver)
@@ -117,7 +119,6 @@ def main(funcType,solver,Se,boundary,simulationLength,fileName):
                 else:
                     inf.psi[i] = inf.waterPotential(funcType, soil[inf.hor[i]], inf.theta[i])
            
-    ints = totalIterationNr / simulationLength
     print("nr of iterations per hour:", totalIterationNr / simulationLength)
     f, myPlot = plt.subplots(2, figsize=(10, 8), dpi=80)
     myPlot[1].set_xlim(0, simulationLength * 3600)
@@ -135,4 +136,5 @@ def main(funcType,solver,Se,boundary,simulationLength,fileName):
     myPlot[1].plot(timeVec, infRate, 'ko')
     myPlot[1].draw(plt.gcf().canvas.get_renderer())
     plt.show()
-#main()
+    print('infiltration = ', sumInfiltration)
+
