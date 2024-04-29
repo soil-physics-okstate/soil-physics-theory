@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import PSP_vapor1D as vap
     
 def main():  
-    isSuccess, soil = vap.readSoil("siltLoam.txt")
+    fileName = input("Soil file name: ")
+    isSuccess, soil = vap.readSoil(fileName)
     if not isSuccess: 
         print("warning: wrong soil file.")
         return
@@ -28,7 +29,7 @@ def main():
     myPlot[0].set_xlim(0, soil.thetaS)
             
     myPlot[1].set_xlim(0, simulationLenght)
-    myPlot[1].set_ylim(0, 0.3)
+    myPlot[1].set_ylim(0, 0.6)
     myPlot[1].set_ylabel("Evaporation Rate [mm h$^{-1}$]",fontsize=16,labelpad=8)
     myPlot[1].set_xlabel("Time [h]",fontsize=16,labelpad=8)
     
@@ -43,8 +44,8 @@ def main():
             sumEvaporation += evaporationFlux * dt 
             time += dt
                         
-            print("time =", int(time), "\tdt =", int(dt), "\tIter. =", iterations, 
-                  "\tsumEvap:", format(sumEvaporation, '.3f'))
+            #print("time =", int(time), "\tdt =", int(dt), "\tIter. =", iterations, 
+            #      "\tsumEvap:", format(sumEvaporation, '.3f'))
             
             myPlot[0].clear()
             myPlot[0].set_xlim(0, soil.thetaS)
@@ -52,13 +53,13 @@ def main():
             myPlot[0].set_ylabel("Depth [m]",fontsize=16,labelpad=8)
             myPlot[0].plot(vap.theta, -vap.z, 'yo')
             myPlot[1].plot(time/3600., evaporationFlux*3600., 'ro')
-	    plt.pause(0.0001)
+	    #plt.pause(0.0001)
             
             if (float(iterations / vap.maxNrIterations) < 0.1): 
                     dt = min(dt*2.0, maxTimeStep)  
         else:
-            print("time =", int(time), "\tdt =", int(dt), 
-                  "\tIter. =", iterations, "No convergence")
+            #print("time =", int(time), "\tdt =", int(dt), 
+            #      "\tIter. =", iterations, "No convergence")
             
             for i in range(vap.n+1):
                 vap.theta[i] = vap.oldTheta[i]
@@ -68,4 +69,7 @@ def main():
     
     plt.ioff()        
     plt.show()
-main()
+    return sumEvaporation
+    
+E = main()
+print("Cumulative evaporation (mm): ", format(E, '.3f'))
