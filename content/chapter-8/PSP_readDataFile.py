@@ -14,6 +14,7 @@ def scanDataFile(file, delimiter):
                 #wrong file: nr of fields not coherent
                 return (nrRows, nrCols, False)
         nrRows += 1
+        # for troubleshooting print(', '.join(row))
     return (nrRows, nrCols, True)
         
 # multi-columns or single row data (only numeric)                
