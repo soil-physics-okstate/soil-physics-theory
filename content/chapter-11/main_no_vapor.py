@@ -1,7 +1,7 @@
 #PSP_evaporation
 from __future__ import print_function, division
 import matplotlib.pyplot as plt
-import PSP_vapor1D as vap
+import PSP_no_vapor1D as vap
     
 def main():  
     fileName = input("Soil file name: ")
@@ -13,7 +13,7 @@ def main():
     funcType = vap.CAMPBELL
     
     #Initial conditions 
-    thetaIni = 0.15         
+    thetaIni = 0.20         
     isFreeDrainage = True
     
     simulationLenght = 80  

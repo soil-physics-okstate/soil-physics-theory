@@ -13,7 +13,7 @@ def main():
     funcType = vap.CAMPBELL
     
     #Initial conditions 
-    thetaIni = 0.15         
+    thetaIni = 0.20         
     isFreeDrainage = True
     
     simulationLenght = 80  

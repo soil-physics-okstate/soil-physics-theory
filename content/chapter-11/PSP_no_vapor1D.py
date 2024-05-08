@@ -78,10 +78,9 @@ def NewtonRapsonMP(funcType, soil, dt, isFreeDrainage):
             u[i] = g * k[i]
             du[i] = -u[i] * soil.Campbell_n / psi[i]
             capacity = dTheta_dPsi(funcType, soil, psi[i])
-            capacity_vapor = dvapor_dPsi(funcType, soil, psi[i], theta[i])
-            C[i] = 
-            vol[i] * waterDensity * capacity / dt
-            #C[i] = (vol[i] * (waterDensity*capacity + capacity_vapor)) / dt
+            # capacity_vapor = dvapor_dPsi(funcType, soil, psi[i], theta[i])
+            C[i] = vol[i] * waterDensity * capacity / dt
+            # C[i] = (vol[i] * (waterDensity*capacity + capacity_vapor)) / dt
         
         for i in range (1, n+1):
             f[i] = ((psi[i+1] * k[i+1] - psi[i] * k[i]) 
@@ -91,7 +90,9 @@ def NewtonRapsonMP(funcType, soil, dt, isFreeDrainage):
                 c[i] = -k[i+1] / dz[i]
                 b[i] =  k[i] / dz[i] + C[i] + du[i]
                 d[i] = evaporation_flux(psi[i]) - f[i] + vol[i]*(waterDensity 
-                           * (theta[i] - oldTheta[i]) + (vapor[i]-oldvapor[i])) /dt
+                           * (theta[i] - oldTheta[i])) /dt
+                # d[i] = evaporation_flux(psi[i]) - f[i] + vol[i]*(waterDensity 
+                #           * (theta[i] - oldTheta[i]) + (vapor[i]-oldvapor[i])) /dt
             else:
                 a[i] = -k[i-1] / dz[i-1] - du[i-1]
                 c[i] = -k[i+1] / dz[i]
@@ -106,7 +107,7 @@ def NewtonRapsonMP(funcType, soil, dt, isFreeDrainage):
             psi[i] -= dpsi[i] 
             psi[i] = min(airEntry, psi[i])    
             theta[i] = thetaFromPsi(funcType, soil, psi[i])
-            vapor[i] = vaporFromPsi(soil, psi[i], theta[i])
+            # vapor[i] = vaporFromPsi(soil, psi[i], theta[i])
         nrIterations += 1
         
         if (isFreeDrainage):
