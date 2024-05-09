@@ -4,6 +4,7 @@ from __future__ import division
 from PSP_readDataFile import *
 from math import sqrt, log, exp
 
+E_p = float(input("Potential evaporation (mm/h): "))/3600.
 g = 9.8065                 
 waterDensity = 1000.        
 area = 1                    
@@ -12,7 +13,6 @@ R = 8.31
 T = 293                     
 dv = 0.000024              
 vp = 0.017                  
-E_p = 0.21/3600.            
 h_a = 0.5                   
  
 NODATA = -9999.
